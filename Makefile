@@ -1,2 +1,2 @@
-text-editor:
-	gcc -Wall -Wextra -o text-editor text-editor.c
+text-editor: text-editor.c
+	$(CC) -Wall -Wextra -std=c99 -o text-editor text-editor.c
