@@ -1,3 +1,5 @@
+// includes
+
 #include <asm-generic/errno-base.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -6,10 +8,21 @@
 #include <stdlib.h>
 #include <termios.h>
 
+// defines
+
+#define CTRL_KEY(key) ((key) & 0x1f)
+
+// data
+
 struct termios orig_termios;
+
+// terminal
 
 void die(const char *s)
 {
+	write(STDOUT_FILENO, "\x1b[2J", 4);
+	write(STDOUT_FILENO, "\x1b[H", 3);
+
 	perror(s);
 	exit(1);
 }
@@ -38,23 +51,62 @@ void enableRawMode(void)
 		die("tcsetattr");
 }
 
+char editorReadKey(void)
+{
+	int nread;
+	char c;
+
+	while((nread = read(STDIN_FILENO, &c, 1)) != 1)
+		if(nread == -1 && errno != EAGAIN) die("read");
+	return c;
+}
+
+// input
+
+void editorProcessKeypress(void)
+{
+	char c = editorReadKey();
+
+	switch(c)
+	{
+		case CTRL_KEY('q'):
+			write(STDOUT_FILENO, "\x1b[2J", 4);
+			write(STDOUT_FILENO, "\x1b[H", 3);
+			exit(0);
+			break;
+	}	
+}
+
+//output
+
+void editorDrawTildas(void)
+{
+	int y;
+	for(y = 0; y < 24; y++)
+		write(STDOUT_FILENO, "~\r\n", 3);
+}
+
+void editorRefresh(void)
+{
+	write(STDOUT_FILENO, "\x1b[2J", 4);
+	write(STDOUT_FILENO, "\x1b[H", 3);
+
+	editorDrawTildas();
+
+	write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
+// initialization
+
 int main(void)
 {
 	enableRawMode();
 
 	while(1)
 	{
-		char c = '\0';
-		if(read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN)
-			die("read");
-
-		if(iscntrl(c))
-			printf("%d\r\n",c);
-		else
-			printf("%d\t%c\r\n",c ,c);
-		
-		if(c == 'q')
-			break;
+		editorRefresh();
+		editorProcessKeypress();
 	}
+
 	return 0;
 }
