@@ -2,9 +2,6 @@
 The only text editor you'll ever need!!!
 Written in C for pure performance!!!
 
-
-
-
 ## Setup and Installation
 
 > [!NOTE]
@@ -27,4 +24,8 @@ and run with
 
 ## Features
 
-- Coursor movement with arrows 
+- Cursor movement with arrows,
+- Use `PgUp` and `PgDn` keys to go to the top of your window,
+- Use `Home` and `End` to move the cursor to the left or right side of your window,
+
+More fetures comming in the future!
