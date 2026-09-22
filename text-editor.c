@@ -172,6 +172,8 @@ int getWindowSize(int *rows, int *cols)
 
 void editorMoveCursor(int key)
 {
+	erow *row = (E.cury >= E.numrows) ? NULL : &E.row[E.cury];
+	
 	switch(key)
 	{
 		case ARROW_LEFT:
@@ -187,9 +189,16 @@ void editorMoveCursor(int key)
 				E.cury++;
 			break;
 		case ARROW_RIGHT:
-			E.curx++;
+			if(row && E.curx < row->size)
+				E.curx++;
 			break;
 	}
+
+	row = (E.cury >= E.numrows) ? NULL : &E.row[E.cury];
+	int rowlen = row ? row->size : 0;
+	if(E.curx > rowlen)
+		E.curx = rowlen;
+
 }
 
 void editorProcessKeypress(void)
@@ -368,7 +377,7 @@ void editorRefresh(void)
 	editorDrawRows(&ab);
 
 	char buf[32];
-	snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cury - E.rowoff) + 1, E.curx + 1);
+	snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cury - E.rowoff) + 1, (E.curx - E.coloff) + 1);
 	abAppend(&ab, buf, strlen(buf));
 
 	abAppend(&ab, "\x1b[?25h", 6);
